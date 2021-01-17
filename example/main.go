@@ -122,7 +122,7 @@ func main() {
 	scheduler.Add(context3, ScheduledJob3, time.Second*20)
 
 	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt, os.Interrupt)
+	signal.Notify(quit, os.Interrupt)
 	<-quit
 	scheduler.Stop()
 	Pool.Stop()
