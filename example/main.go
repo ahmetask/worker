@@ -46,7 +46,6 @@ func ScheduledJob1(ctx context.Context) {
 	jobs := []int{1, 2, 3, 4, 5, 6, ctx.Value("foo1").(int)}
 
 	for _, j := range jobs {
-		log.Println(fmt.Sprintf("Enqueue Job:%d", j))
 
 		//Try to Enqueue the job with given timeout else return false
 		queued := Pool.EnqueueWithTimeout(&Job1{
@@ -68,7 +67,6 @@ func ScheduledJob2(ctx context.Context) {
 	jobs := []string{"s2-a", "s2-b", "s2-c", "s2-d", "s2-e", "s2-f"}
 
 	for _, j := range jobs {
-		log.Println(fmt.Sprintf("Enqueue Job:%s", j))
 
 		// Try to enqueue the job but this call returns false if queue is full
 		queued := Pool.Enqueue(&Job2{
@@ -92,16 +90,14 @@ func ScheduledJob3(ctx context.Context) {
 	wg := &sync.WaitGroup{}
 	jobs := []string{"s3-a", "s3-b", "s3-c", "s3-d", "s3-e", "s2-f"}
 	for _, j := range jobs {
+
 		wg.Add(1)
-		log.Println(fmt.Sprintf("Job Start:%s", j))
 
 		// Blocking call wait for available workers if workers are fast enough use this
 		Pool.Submit(&Job2{
 			Id: j,
 			Wg: wg,
 		})
-
-		log.Println(fmt.Sprintf("Job Finished:%s", j))
 	}
 
 	wg.Wait()
@@ -117,13 +113,13 @@ func main() {
 
 	context1 := context.Background()
 	c1 := context.WithValue(context1, "foo1", 7)
-	scheduler.Add(c1, ScheduledJob1, time.Minute*20)
+	scheduler.Add(c1, ScheduledJob1, time.Second*20)
 
 	context2 := context.Background()
-	scheduler.Add(context2, ScheduledJob2, time.Minute*20)
+	scheduler.Add(context2, ScheduledJob2, time.Second*20)
 
 	context3 := context.Background()
-	scheduler.Add(context3, ScheduledJob3, time.Minute*20)
+	scheduler.Add(context3, ScheduledJob3, time.Second*20)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, os.Interrupt)
