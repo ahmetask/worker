@@ -99,7 +99,7 @@ func ScheduledJob2(ctx context.Context) {
 func ScheduledJob3(ctx context.Context) {
 	log.Println("ScheduledJob3 Started")
 	wg := &sync.WaitGroup{}
-	jobs := []string{"s3-a", "s3-b", "s3-c", "s3-d", "s3-e", "s2-f"}
+	jobs := []string{"s3-a", "s3-b", "s3-c", "s3-d", "s3-e", "s3-f"}
 	for _, j := range jobs {
 
 		wg.Add(1)
