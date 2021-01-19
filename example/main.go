@@ -113,13 +113,24 @@ func main() {
 
 	context1 := context.Background()
 	c1 := context.WithValue(context1, "foo1", 7)
-	scheduler.Add(c1, ScheduledJob1, time.Second*20)
+	trigger1 := scheduler.Add(c1, ScheduledJob1, time.Minute*1)
 
+	//Specific Trigger
+	time.AfterFunc(15*time.Second, func() {
+		fmt.Println("ScheduledJob1 Triggered")
+		trigger1 <- true
+	})
 	context2 := context.Background()
-	scheduler.Add(context2, ScheduledJob2, time.Second*20)
+	scheduler.Add(context2, ScheduledJob2, time.Minute*1)
 
 	context3 := context.Background()
-	scheduler.Add(context3, ScheduledJob3, time.Second*20)
+	scheduler.Add(context3, ScheduledJob3, time.Minute*1)
+
+	//Manual Trigger
+	time.AfterFunc(30*time.Second, func() {
+		fmt.Println("Trigger All")
+		scheduler.TriggerAll()
+	})
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
