@@ -124,18 +124,25 @@ func main() {
 
 	context1 := context.Background()
 	c1 := context.WithValue(context1, "foo1", 7)
-	trigger1 := scheduler.Add(c1, ScheduledJob1, time.Minute*1)
+	trigger1, active := scheduler.Add(c1, ScheduledJob1, time.Second*10, false)
+
+	// Soft Start/Stop
+	time.AfterFunc(10*time.Second, func() {
+		fmt.Println("ScheduledJob1 Starting")
+		active <- true // or false for stopping the scheduler
+	})
 
 	//Specific Trigger
 	time.AfterFunc(15*time.Second, func() {
 		fmt.Println("ScheduledJob1 Triggered")
 		trigger1 <- true
 	})
+
 	context2 := context.Background()
-	scheduler.Add(context2, ScheduledJob2, time.Minute*1)
+	scheduler.Add(context2, ScheduledJob2, time.Minute*1, true)
 
 	context3 := context.Background()
-	scheduler.Add(context3, ScheduledJob3, time.Minute*1)
+	scheduler.Add(context3, ScheduledJob3, time.Minute*1, true)
 
 	//Manual Trigger
 	time.AfterFunc(30*time.Second, func() {
@@ -149,5 +156,4 @@ func main() {
 	scheduler.Stop()
 	Pool.Stop()
 }
-
 ```

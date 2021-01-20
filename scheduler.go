@@ -22,16 +22,18 @@ func NewScheduler() *Scheduler {
 	}
 }
 
-func (s *Scheduler) Add(ctx context.Context, j Job, interval time.Duration) chan bool {
+func (s *Scheduler) Add(ctx context.Context, j Job, interval time.Duration, active bool) (chan bool, chan bool) {
 	ctx, cancel := context.WithCancel(ctx)
 	s.cancellations = append(s.cancellations, cancel)
 
-	ch := make(chan bool)
+	triggerChannel := make(chan bool)
 
-	s.triggers = append(s.triggers, ch)
+	activeChannel := make(chan bool)
+
+	s.triggers = append(s.triggers, triggerChannel)
 	s.wg.Add(1)
-	go s.process(ctx, j, interval, ch)
-	return ch
+	go s.process(ctx, j, interval, triggerChannel, activeChannel, active)
+	return triggerChannel, activeChannel
 }
 
 func (s *Scheduler) TriggerAll() {
@@ -47,19 +49,28 @@ func (s *Scheduler) Stop() {
 	s.wg.Wait()
 }
 
-func (s *Scheduler) process(ctx context.Context, j Job, interval time.Duration, trigger chan bool) {
+func (s *Scheduler) process(ctx context.Context, j Job, interval time.Duration, trigger chan bool, activeCh chan bool, active bool) {
 	ticker := time.NewTicker(interval)
 	first := make(chan bool, 1)
-
 	first <- true
+	isActive := active
+
+	run := func() {
+		if isActive {
+			j(ctx)
+		}
+	}
+
 	for {
 		select {
+		case a := <-activeCh:
+			isActive = a
 		case <-first:
-			j(ctx)
+			run()
 		case <-ticker.C:
-			j(ctx)
+			run()
 		case <-trigger:
-			j(ctx)
+			run()
 		case <-ctx.Done():
 			s.wg.Done()
 			ticker.Stop()
