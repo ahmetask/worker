@@ -71,6 +71,7 @@ func (s *Scheduler) process(ctx context.Context, j Job, interval time.Duration, 
 			run()
 		case <-trigger:
 			run()
+			<-ticker.C
 		case <-ctx.Done():
 			s.wg.Done()
 			ticker.Stop()
