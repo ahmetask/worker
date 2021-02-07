@@ -28,33 +28,36 @@ type Job struct {
 
 /*implement work interface*/
 func (j *Job) Do() {
-	time.Sleep(1 * time.Second)
+	time.Sleep(5 * time.Second)
 	log.Println(fmt.Sprintf("Job Finished:%d", j.Id))
 }
 
 func main() {
 	// Initialize Pool
 	// First Param=> Worker Count Second Param is Waiting Queue Capacity
-	pool := worker.NewWorkerPool(4, 4)
+	pool := worker.NewWorkerPool(1, 1)
 
 	//Start worker pool
 	pool.Start()
 
-	//Job
-	job := &Job{
-		Id: 1,
-	}
-
 	//This is blocking if all workers are busy
-	pool.Submit(job)
+	pool.Submit(&Job{Id: 1})
 
 	//Tries to enqueue but fails if queue is full*/
-	queued := pool.Enqueue(job)
-	log.Println(fmt.Sprintf("Queued: %v", queued))
+	a := pool.Enqueue(&Job{Id: 2})
+	log.Println(fmt.Sprintf("Queued 2: %v", a))
 
+	b := pool.Enqueue(&Job{Id: 3})
+	log.Println(fmt.Sprintf("Queued 3: %v", b))
+
+	c := pool.Enqueue(&Job{Id: 4})
+	log.Println(fmt.Sprintf("Queued 4: %v", c))
+
+	e := pool.EnqueueWithTimeout(&Job{Id: 5}, 1*time.Second)
+	log.Println(fmt.Sprintf("Queued 5 : %v", e))
 	/*try to enqueue but fails if timeout occurs*/
-	pool.EnqueueWithTimeout(job, 1*time.Second)
-	log.Println(fmt.Sprintf("Queued: %v", queued))
+	d := pool.EnqueueWithTimeout(&Job{Id: 6}, 10*time.Second)
+	log.Println(fmt.Sprintf("Queued 6 : %v", d))
 
 	//Waiting
 	quit := make(chan os.Signal, 1)
