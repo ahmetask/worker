@@ -57,30 +57,33 @@ func (s *Scheduler) process(ctx context.Context, j Job, interval time.Duration, 
 	first <- true
 	isActive := active
 
-	run := func() {
+	run := func(m *sync.Mutex) {
 		defer func() {
 			if r := recover(); r != nil {
 				const size = 64 << 10
 				buf := make([]byte, size)
 				buf = buf[:runtime.Stack(buf, false)]
-				log.Printf("panic running job: %v\n%s\n", r, buf)
+				log.Printf("panic scheduled job: %v\n%s\n", r, buf)
 			}
 		}()
 		if isActive {
+			m.Lock()
 			j(ctx)
+			m.Unlock()
 		}
 	}
+	var m = &sync.Mutex{}
 
 	for {
 		select {
 		case a := <-activeCh:
 			isActive = a
 		case <-first:
-			go run()
+			go run(m)
 		case <-ticker.C:
-			go run()
+			go run(m)
 		case <-trigger:
-			go run()
+			go run(m)
 			<-ticker.C
 		case <-ctx.Done():
 			s.wg.Done()
