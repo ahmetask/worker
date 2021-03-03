@@ -2,6 +2,8 @@ package worker
 
 import (
 	"context"
+	"log"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -56,6 +58,14 @@ func (s *Scheduler) process(ctx context.Context, j Job, interval time.Duration, 
 	isActive := active
 
 	run := func() {
+		defer func() {
+			if r := recover(); r != nil {
+				const size = 64 << 10
+				buf := make([]byte, size)
+				buf = buf[:runtime.Stack(buf, false)]
+				log.Printf("panic running job: %v\n%s\n", r, buf)
+			}
+		}()
 		if isActive {
 			j(ctx)
 		}

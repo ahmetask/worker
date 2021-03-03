@@ -1,6 +1,8 @@
 package worker
 
 import (
+	"log"
+	"runtime"
 	"sync"
 )
 
@@ -24,6 +26,14 @@ func NewWorker(id int, readyPool chan chan Work, done *sync.WaitGroup) *worker {
 
 func (w *worker) Process(work Work) {
 	//Do the work
+	defer func() {
+		if r := recover(); r != nil {
+			const size = 64 << 10
+			buf := make([]byte, size)
+			buf = buf[:runtime.Stack(buf, false)]
+			log.Printf("panic running process: %v\n%s\n", r, buf)
+		}
+	}()
 	work.Do()
 }
 
