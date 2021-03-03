@@ -76,11 +76,11 @@ func (s *Scheduler) process(ctx context.Context, j Job, interval time.Duration, 
 		case a := <-activeCh:
 			isActive = a
 		case <-first:
-			run()
+			go run()
 		case <-ticker.C:
-			run()
+			go run()
 		case <-trigger:
-			run()
+			go run()
 			<-ticker.C
 		case <-ctx.Done():
 			s.wg.Done()
