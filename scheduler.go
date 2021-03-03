@@ -64,6 +64,7 @@ func (s *Scheduler) process(ctx context.Context, j Job, interval time.Duration, 
 				buf := make([]byte, size)
 				buf = buf[:runtime.Stack(buf, false)]
 				log.Printf("panic scheduled job: %v\n%s\n", r, buf)
+				m.Unlock()
 			}
 		}()
 		if isActive {
