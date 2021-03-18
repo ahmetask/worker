@@ -51,40 +51,36 @@ func (s *Scheduler) Stop() {
 	s.wg.Wait()
 }
 
+func (s *Scheduler) Run(j Job, ctx context.Context, isActive bool) {
+	defer func() {
+		if r := recover(); r != nil {
+			const size = 64 << 10
+			buf := make([]byte, size)
+			buf = buf[:runtime.Stack(buf, false)]
+			log.Printf("panic scheduled job: %v\n%s\n", r, buf)
+		}
+	}()
+	if isActive {
+		j(ctx)
+	}
+}
+
 func (s *Scheduler) process(ctx context.Context, j Job, interval time.Duration, trigger chan bool, activeCh chan bool, active bool) {
 	ticker := time.NewTicker(interval)
 	first := make(chan bool, 1)
 	first <- true
 	isActive := active
 
-	run := func(m *sync.Mutex) {
-		defer func() {
-			if r := recover(); r != nil {
-				const size = 64 << 10
-				buf := make([]byte, size)
-				buf = buf[:runtime.Stack(buf, false)]
-				log.Printf("panic scheduled job: %v\n%s\n", r, buf)
-				m.Unlock()
-			}
-		}()
-		if isActive {
-			m.Lock()
-			j(ctx)
-			m.Unlock()
-		}
-	}
-	var m = &sync.Mutex{}
-
 	for {
 		select {
 		case a := <-activeCh:
 			isActive = a
 		case <-first:
-			go run(m)
+			s.Run(j, ctx, isActive)
 		case <-ticker.C:
-			go run(m)
+			s.Run(j, ctx, isActive)
 		case <-trigger:
-			go run(m)
+			s.Run(j, ctx, isActive)
 			<-ticker.C
 		case <-ctx.Done():
 			s.wg.Done()
