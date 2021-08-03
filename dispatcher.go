@@ -22,10 +22,6 @@ func NewWorkerPool(opts ...opts) *Pool {
 	maxWorkers := cfg.maxWorkers
 	jobQueueCapacity := cfg.jobQueueCapacity
 
-	if jobQueueCapacity <= 0 {
-		jobQueueCapacity = 100
-	}
-
 	workersStopped := sync.WaitGroup{}
 
 	readyPool := make(chan chan Work, maxWorkers)

@@ -24,5 +24,8 @@ func buildWorkerPoolConfig(opts ...opts) *workerPoolConfig {
 	for _, opt := range opts {
 		opt(cfg)
 	}
+	if cfg.jobQueueCapacity <= 0 {
+		cfg.jobQueueCapacity = 100
+	}
 	return cfg
 }
