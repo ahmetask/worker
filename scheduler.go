@@ -51,7 +51,7 @@ func (s *Scheduler) Stop() {
 	s.wg.Wait()
 }
 
-func (s *Scheduler) Run(j Job, ctx context.Context, isActive bool) {
+func (s *Scheduler) Run(j Job, ctx context.Context, active bool) {
 	defer func() {
 		if r := recover(); r != nil {
 			const size = 64 << 10
@@ -60,7 +60,7 @@ func (s *Scheduler) Run(j Job, ctx context.Context, isActive bool) {
 			log.Printf("panic scheduled job: %v\n%s\n", r, buf)
 		}
 	}()
-	if isActive {
+	if active {
 		j(ctx)
 	}
 }
