@@ -15,7 +15,13 @@ type Pool struct {
 	quit              chan bool
 }
 
-func NewWorkerPool(maxWorkers int, jobQueueCapacity int) *Pool {
+func NewWorkerPool(opts ...opts) *Pool {
+
+	cfg := buildWorkerPoolConfig(opts...)
+
+	maxWorkers := cfg.maxWorkers
+	jobQueueCapacity := cfg.jobQueueCapacity
+
 	if jobQueueCapacity <= 0 {
 		jobQueueCapacity = 100
 	}

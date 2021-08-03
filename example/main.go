@@ -106,7 +106,9 @@ func ScheduledJob3(ctx context.Context) {
 }
 
 func main() {
-	Pool = worker.NewWorkerPool(4, 4)
+	Pool = worker.NewWorkerPool(
+		worker.WithMaxWorkers(4),
+		worker.WithJobQueueCapacity(4))
 	Pool.Start()
 
 	scheduler := worker.NewScheduler()
