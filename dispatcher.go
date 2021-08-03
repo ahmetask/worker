@@ -19,8 +19,6 @@ func NewWorkerPool(opts ...opts) *Pool {
 
 	cfg := buildWorkerPoolConfig(opts...)
 
-	jobQueueCapacity := cfg.jobQueueCapacity
-
 	workersStopped := sync.WaitGroup{}
 
 	readyPool := make(chan chan Work, cfg.maxWorkers)
@@ -32,7 +30,7 @@ func NewWorkerPool(opts ...opts) *Pool {
 	}
 
 	return &Pool{
-		internalQueue:     make(chan Work, jobQueueCapacity),
+		internalQueue:     make(chan Work, cfg.jobQueueCapacity),
 		singleJob:         make(chan Work),
 		readyPool:         readyPool,
 		workers:           workers,
