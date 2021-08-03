@@ -69,18 +69,16 @@ func (s *Scheduler) process(ctx context.Context, j Job, interval time.Duration, 
 	ticker := time.NewTicker(interval)
 	first := make(chan bool, 1)
 	first <- true
-	isActive := active
 
 	for {
 		select {
-		case a := <-activeCh:
-			isActive = a
+		case active = <-activeCh:
 		case <-first:
-			s.Run(j, ctx, isActive)
+			s.Run(j, ctx, active)
 		case <-ticker.C:
-			s.Run(j, ctx, isActive)
+			s.Run(j, ctx, active)
 		case <-trigger:
-			s.Run(j, ctx, isActive)
+			s.Run(j, ctx, active)
 			<-ticker.C
 		case <-ctx.Done():
 			s.wg.Done()
