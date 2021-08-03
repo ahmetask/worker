@@ -23,7 +23,7 @@ func NewWorkerPool(maxWorkers int, jobQueueCapacity int) *Pool {
 	workersStopped := sync.WaitGroup{}
 
 	readyPool := make(chan chan Work, maxWorkers)
-	workers := make([]*worker, maxWorkers, maxWorkers)
+	workers := make([]*worker, maxWorkers)
 
 	// create workers
 	for i := 0; i < maxWorkers; i++ {
