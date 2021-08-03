@@ -19,16 +19,15 @@ func NewWorkerPool(opts ...opts) *Pool {
 
 	cfg := buildWorkerPoolConfig(opts...)
 
-	maxWorkers := cfg.maxWorkers
 	jobQueueCapacity := cfg.jobQueueCapacity
 
 	workersStopped := sync.WaitGroup{}
 
-	readyPool := make(chan chan Work, maxWorkers)
-	workers := make([]*worker, maxWorkers)
+	readyPool := make(chan chan Work, cfg.maxWorkers)
+	workers := make([]*worker, cfg.maxWorkers)
 
 	// create workers
-	for i := 0; i < maxWorkers; i++ {
+	for i := 0; i < cfg.maxWorkers; i++ {
 		workers[i] = NewWorker(i+1, readyPool, &workersStopped)
 	}
 
