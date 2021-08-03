@@ -10,9 +10,9 @@ type Pool struct {
 	internalQueue     chan Work
 	readyPool         chan chan Work //boss says hey i have a new job at my desk workers who available can get it in this way he does not have to ask current status of workers
 	workers           []*worker
-	dispatcherStopped sync.WaitGroup
 	workersStopped    *sync.WaitGroup
 	quit              chan struct{}
+	done           chan struct{}
 }
 
 func NewWorkerPool(opts ...opts) *Pool {
@@ -34,9 +34,9 @@ func NewWorkerPool(opts ...opts) *Pool {
 		singleJob:         make(chan Work),
 		readyPool:         readyPool,
 		workers:           workers,
-		dispatcherStopped: sync.WaitGroup{},
 		workersStopped:    &workersStopped,
 		quit:              make(chan struct{}),
+		done:           make(chan struct{}),
 	}
 }
 
@@ -51,12 +51,11 @@ func (q *Pool) Start() {
 
 func (q *Pool) Stop() {
 	close(q.quit)
-	q.dispatcherStopped.Wait()
+	<-q.done
 }
 
 func (q *Pool) dispatch() {
 	//open factory gate
-	q.dispatcherStopped.Add(1)
 	for {
 		select {
 		case job := <-q.singleJob:
@@ -73,7 +72,7 @@ func (q *Pool) dispatch() {
 			// wait for all workers to finish their job
 			q.workersStopped.Wait()
 			//close factory gate
-			q.dispatcherStopped.Done()
+			close(q.done)
 			return
 		}
 	}
