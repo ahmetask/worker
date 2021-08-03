@@ -6,12 +6,12 @@ import (
 )
 
 type Pool struct {
-	singleJob         chan Work
-	internalQueue     chan Work
-	readyPool         chan chan Work //boss says hey i have a new job at my desk workers who available can get it in this way he does not have to ask current status of workers
-	workers           []*worker
-	workersStopped    *sync.WaitGroup
-	quit              chan struct{}
+	singleJob      chan Work
+	internalQueue  chan Work
+	readyPool      chan chan Work //boss says hey i have a new job at my desk workers who available can get it in this way he does not have to ask current status of workers
+	workers        []*worker
+	workersStopped *sync.WaitGroup
+	quit           chan struct{}
 	done           chan struct{}
 }
 
@@ -30,12 +30,12 @@ func NewWorkerPool(opts ...opts) *Pool {
 	}
 
 	return &Pool{
-		internalQueue:     make(chan Work, cfg.jobQueueCapacity),
-		singleJob:         make(chan Work),
-		readyPool:         readyPool,
-		workers:           workers,
-		workersStopped:    &workersStopped,
-		quit:              make(chan struct{}),
+		internalQueue:  make(chan Work, cfg.jobQueueCapacity),
+		singleJob:      make(chan Work),
+		readyPool:      readyPool,
+		workers:        workers,
+		workersStopped: &workersStopped,
+		quit:           make(chan struct{}),
 		done:           make(chan struct{}),
 	}
 }
