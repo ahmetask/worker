@@ -13,22 +13,22 @@ type Job func(ctx context.Context)
 type Scheduler struct {
 	wg            *sync.WaitGroup
 	cancellations []context.CancelFunc
-	triggers      []chan bool
+	triggers      []chan struct{}
 }
 
 func NewScheduler() *Scheduler {
 	return &Scheduler{
 		wg:            new(sync.WaitGroup),
 		cancellations: make([]context.CancelFunc, 0),
-		triggers:      make([]chan bool, 0),
+		triggers:      make([]chan struct{}, 0),
 	}
 }
 
-func (s *Scheduler) Add(ctx context.Context, j Job, interval time.Duration, active bool) (chan bool, chan bool) {
+func (s *Scheduler) Add(ctx context.Context, j Job, interval time.Duration, active bool) (chan struct{}, chan bool) {
 	ctx, cancel := context.WithCancel(ctx)
 	s.cancellations = append(s.cancellations, cancel)
 
-	triggerChannel := make(chan bool)
+	triggerChannel := make(chan struct{})
 
 	activeChannel := make(chan bool)
 
@@ -40,7 +40,7 @@ func (s *Scheduler) Add(ctx context.Context, j Job, interval time.Duration, acti
 
 func (s *Scheduler) TriggerAll() {
 	for _, ch := range s.triggers {
-		ch <- true
+		ch <- struct{}{}
 	}
 }
 
@@ -65,7 +65,7 @@ func (s *Scheduler) Run(j Job, ctx context.Context, isActive bool) {
 	}
 }
 
-func (s *Scheduler) process(ctx context.Context, j Job, interval time.Duration, trigger chan bool, activeCh chan bool, active bool) {
+func (s *Scheduler) process(ctx context.Context, j Job, interval time.Duration, trigger chan struct{}, activeCh chan bool, active bool) {
 	ticker := time.NewTicker(interval)
 	first := make(chan bool, 1)
 	first <- true

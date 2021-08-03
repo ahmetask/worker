@@ -126,7 +126,7 @@ func main() {
 	//Specific Trigger
 	time.AfterFunc(15*time.Second, func() {
 		fmt.Println("ScheduledJob1 Triggered")
-		trigger1 <- true
+		trigger1 <- struct{}{}
 	})
 
 	context2 := context.Background()
