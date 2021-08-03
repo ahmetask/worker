@@ -43,8 +43,8 @@ func NewWorkerPool(maxWorkers int, jobQueueCapacity int) *Pool {
 
 func (q *Pool) Start() {
 	//tell workers to get ready
-	for i := 0; i < len(q.workers); i++ {
-		q.workers[i].Start()
+	for _, w := range q.workers {
+		w.Start()
 	}
 	// open factory
 	go q.dispatch()
@@ -68,8 +68,8 @@ func (q *Pool) dispatch() {
 			workerXChannel <- job           // here is your job worker x
 		case <-q.quit:
 			// free all workers
-			for i := 0; i < len(q.workers); i++ {
-				q.workers[i].Stop()
+			for _, w := range q.workers {
+				w.Stop()
 			}
 			// wait for all workers to finish their job
 			q.workersStopped.Wait()
