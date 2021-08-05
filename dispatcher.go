@@ -103,7 +103,10 @@ func (q *Pool) EnqueueWithTimeout(job Work, timeout time.Duration) bool {
 	}
 
 	ch := make(chan bool)
-	t := time.AfterFunc(timeout, func() { ch <- false })
+	t := time.AfterFunc(timeout, func() { 
+		ch <- false 
+		close(ch)
+	})
 	defer func() {
 		t.Stop()
 	}()
