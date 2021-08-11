@@ -102,19 +102,18 @@ func (q *Pool) EnqueueWithTimeout(job Work, timeout time.Duration) bool {
 		timeout = 1 * time.Second
 	}
 
-	ch := make(chan bool)
-	t := time.AfterFunc(timeout, func() { ch <- false })
+	ch := make(chan bool, 1)
+	t := time.AfterFunc(timeout, func() { 
+		ch <- false
+	})
 	defer func() {
 		t.Stop()
-		close(ch)
 	}()
 
-	for {
-		select {
-		case q.internalQueue <- job:
-			return true
-		case <-ch:
-			return false
-		}
+	select {
+	case q.internalQueue <- job:
+		return true
+	case <-ch:
+		return false
 	}
 }
