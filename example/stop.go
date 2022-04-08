@@ -42,4 +42,3 @@ func main() {
 	<-quit
 	pool.Stop()
 }
-diff --git a/example/main.go b/example/main.go
