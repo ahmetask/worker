@@ -20,7 +20,7 @@ func (j *job) doWork() {
 func (j *job) Do() {
 	for {
 		if j.quit {
-			fmt.Println("goroutine is break ")
+			fmt.Println("break")
 			break
 		}
 		j.doWork()
