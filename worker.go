@@ -12,6 +12,7 @@ type worker struct {
 	readyPool chan chan Work //get work from the boss
 	work      chan Work
 	quit      chan bool
+	works     map[Work]bool
 }
 
 func NewWorker(id int, readyPool chan chan Work, done *sync.WaitGroup) *worker {
@@ -21,6 +22,7 @@ func NewWorker(id int, readyPool chan chan Work, done *sync.WaitGroup) *worker {
 		readyPool: readyPool,
 		work:      make(chan Work),
 		quit:      make(chan bool),
+		works:     make(map[Work]bool),
 	}
 }
 
@@ -44,7 +46,9 @@ func (w *worker) Start() {
 			w.readyPool <- w.work //hey i am ready to work on new job
 			select {
 			case work := <-w.work: // hey i am waiting for new job
+				w.works[work] = true
 				w.Process(work) // ok i am on it
+				delete(w.works, work)
 			case <-w.quit:
 				w.done.Done() // ok i am here i finished my all jobs
 				return
@@ -54,6 +58,10 @@ func (w *worker) Start() {
 }
 
 func (w *worker) Stop() {
-	//tell worker to stop after current process
+	// stop works
+	for k := range w.works {
+		k.Stop()
+	}
+	// tell worker to stop after current process
 	w.quit <- true
 }

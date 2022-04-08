@@ -27,6 +27,10 @@ func (j *Job1) Do() {
 	j.Wg.Done()
 }
 
+func (j *Job1) Stop() {
+
+}
+
 type Job2 struct {
 	Id string
 	Wg *sync.WaitGroup
@@ -39,6 +43,9 @@ func (j *Job2) Do() {
 	j.Wg.Done()
 }
 
+func (j *Job2) Stop() {
+
+}
 func ScheduledJob1(ctx context.Context) {
 	log.Println("ScheduledJob1 Started")
 
