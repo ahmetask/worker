@@ -7,14 +7,15 @@ import (
 )
 
 type worker struct {
-	id        int
-	done      *sync.WaitGroup
-	readyPool chan chan Work //get work from the boss
-	work      chan Work
-	quit      chan bool
+	id          int
+	done        *sync.WaitGroup
+	readyPool   chan chan Work // get work from the boss
+	work        chan Work
+	currentWork Work
+	quit        chan bool
 }
 
-func NewWorker(id int, readyPool chan chan Work, done *sync.WaitGroup) *worker {
+func newWorker(id int, readyPool chan chan Work, done *sync.WaitGroup) *worker {
 	return &worker{
 		id:        id,
 		done:      done,
@@ -24,8 +25,8 @@ func NewWorker(id int, readyPool chan chan Work, done *sync.WaitGroup) *worker {
 	}
 }
 
-func (w *worker) Process(work Work) {
-	//Do the work
+func (w *worker) process(work Work) {
+	// Do the work
 	defer func() {
 		if r := recover(); r != nil {
 			const size = 64 << 10
@@ -37,23 +38,29 @@ func (w *worker) Process(work Work) {
 	work.Do()
 }
 
-func (w *worker) Start() {
+func (w *worker) start() {
+	w.done.Add(1) // wait for me
 	go func() {
-		w.done.Add(1) // wait for me
 		for {
-			w.readyPool <- w.work //hey i am ready to work on new job
+			w.readyPool <- w.work // hey I am ready to work on new job
 			select {
-			case work := <-w.work: // hey i am waiting for new job
-				w.Process(work) // ok i am on it
+			case work := <-w.work: // hey I am waiting for new job
+				w.currentWork = work
+				w.process(work) // ok I am on it
 			case <-w.quit:
-				w.done.Done() // ok i am here i finished my all jobs
+				w.done.Done() // ok I am here I finished my all jobs
 				return
 			}
 		}
 	}()
 }
 
-func (w *worker) Stop() {
-	//tell worker to stop after current process
+func (w *worker) stop() {
+	// tell worker to stop after current process
 	w.quit <- true
+
+	// stop current work
+	if w.currentWork != nil {
+		w.currentWork.Stop()
+	}
 }

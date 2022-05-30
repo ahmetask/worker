@@ -1,3 +1,3 @@
 module github.com/ahmetask/worker
 
-go 1.15
+go 1.17
